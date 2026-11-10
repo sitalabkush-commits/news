@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BTC/ETH No-Trade Zone Indicator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05060a; --panel:#0d1017; --line:#1e2430; --text:#f2f4f8; --dim:#8b94a7;
+  --btc:#f7931a; --eth:#4f7cff; --usd:#c8cfdd; --safe:#00e676; --risk:#ff2d4a; --warn:#ffb300;
+  --head:"Chakra Petch",system-ui,sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;
+  background-image:radial-gradient(60rem 30rem at 0% -10%,rgba(247,147,26,.10),transparent),
+                   radial-gradient(60rem 30rem at 100% -10%,rgba(79,124,255,.12),transparent)}
+.wrap{max-width:1000px;margin:0 auto;padding:20px 16px 48px}
+header{text-align:center;padding:8px 0 20px}
+#clock{font-family:var(--head);font-weight:700;font-size:clamp(2.6rem,10vw,5rem);letter-spacing:.02em;line-height:1}
+#tz{color:var(--dim);margin-top:6px;font-size:.95rem}
+.brand{font-family:var(--head);font-size:.95rem;margin-bottom:10px;color:var(--dim)}
+.brand b:first-child{color:var(--btc)} .brand b:last-child{color:var(--eth)}
+
+#banner{border-radius:14px;padding:26px 18px;text-align:center;font-family:var(--head);font-weight:700;
+  font-size:clamp(1.15rem,4.6vw,2rem);line-height:1.25;border:2px solid}
+#banner small{display:block;font-family:var(--body);font-weight:500;font-size:.9rem;margin-top:8px;opacity:.9}
+#banner.safe{background:rgba(0,230,118,.08);border-color:var(--safe);color:var(--safe);box-shadow:0 0 28px rgba(0,230,118,.18)}
+#banner.risk{background:rgba(255,45,74,.14);border-color:var(--risk);color:#ff6b80;animation:blink 1s steps(2,start) infinite}
+@keyframes blink{50%{background:rgba(255,45,74,.38);box-shadow:0 0 40px rgba(255,45,74,.6)}}
+@media (prefers-reduced-motion:reduce){#banner.risk{animation:none}.badge.nt{animation:none}}
+
+.countdown{margin:18px 0;padding:18px;background:var(--panel);border:1px solid var(--line);border-radius:14px;text-align:center}
+.countdown .lbl{color:var(--dim);font-size:.9rem}
+#cd{font-family:var(--head);font-weight:700;font-size:clamp(2rem,8vw,3.2rem);margin:4px 0;font-variant-numeric:tabular-nums}
+#cdTitle{font-size:.95rem;color:var(--text)}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.filters button{flex:1 1 auto;min-width:80px;background:var(--panel);color:var(--dim);border:1px solid var(--line);
+  padding:12px 14px;border-radius:10px;font:600 .95rem var(--head);cursor:pointer}
+.filters button:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.filters button.on{color:#000;background:var(--text);border-color:var(--text)}
+.filters button.on[data-f=BTC]{background:var(--btc);border-color:var(--btc)}
+.filters button.on[data-f=ETH]{background:var(--eth);border-color:var(--eth);color:#fff}
+
+.tablebox{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:560px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:.85rem;padding:14px 16px;border-bottom:1px solid var(--line)}
+td{padding:16px;border-bottom:1px solid var(--line);font-size:1.05rem}
+tr:last-child td{border-bottom:0}
+td.time{font-family:var(--head);font-weight:700;font-size:1.25rem;white-space:nowrap}
+td.time small{display:block;font:400 .8rem var(--body);color:var(--dim)}
+tr.past{opacity:.45}
+.asset{font-family:var(--head);font-weight:700}
+.asset.BTC{color:var(--btc)} .asset.ETH{color:var(--eth)} .asset.USD{color:var(--usd)}
+.badge{display:inline-block;padding:5px 10px;border-radius:999px;font:700 .8rem var(--head);white-space:nowrap}
+.badge.nt{background:var(--risk);color:#fff;animation:blink2 1s steps(2,start) infinite}
+@keyframes blink2{50%{opacity:.45}}
+.badge.up{background:rgba(255,179,0,.15);color:var(--warn);border:1px solid var(--warn)}
+.badge.ps{background:#1a1f2b;color:var(--dim)}
+.msg{padding:28px 16px;text-align:center;color:var(--dim)}
+footer{margin-top:18px;color:var(--dim);font-size:.8rem;text-align:center;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><b>BTC</b> / <b>ETH</b> volatility watch</div>
+    <div id="clock">--:--:--</div>
+    <div id="tz"></div>
+  </header>
+
+  <div id="banner" class="safe" role="status" aria-live="polite">Loading events…</div>
+
+  <section class="countdown">
+    <div class="lbl">Next high-impact event in</div>
+    <div id="cd">--:--:--</div>
+    <div id="cdTitle">&nbsp;</div>
+  </section>
+
+  <nav class="filters" aria-label="Event filters">
+    <button data-f="ALL" class="on">ALL</button>
+    <button data-f="BTC">BTC Only</button>
+    <button data-f="ETH">ETH Only</button>
+    <button data-f="USD">USD Macro</button>
+  </nav>
+
+  <div class="tablebox">
+    <table>
+      <thead><tr><th>Your local time</th><th>Event</th><th>Asset</th><th>Status</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div id="msg" class="msg" hidden></div>
+  </div>
+
+  <footer>Not financial advice. Times are converted to your device’s timezone. No-Trade Zone = 30 minutes before and after a high-impact event.</footer>
+</div>
+
+<script>
+const WINDOW_MS = 30 * 60 * 1000;
+
+let events = [];
+let filter = "ALL";
+const $ = id => document.getElementById(id);
+const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+$("tz").textContent = tz;
+
+async function loadEvents() {
+  const since = Date.now() - 48 * 3600e3;
+  try {
+    const r = await fetch("events.json?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    events = (await r.json())
+      .map(e => ({ ...e, t: new Date(e.event_time).getTime() }))
+      .filter(e => e.impact === "High" && e.t >= since)
+      .sort((a, b) => a.t - b.t);
+    $("msg").hidden = true;
+  } catch (err) {
+    events = [];
+    $("msg").hidden = false;
+    $("msg").textContent = "Could not load events.json. Run the GitHub Action once first.";
+  }
+  render();
+}
+
+function activeZone(now) {
+  return events.find(e => Math.abs(now - e.t) <= WINDOW_MS);
+}
+function visible() {
+  return events.filter(e => filter === "ALL" || e.asset === filter);
+}
+const pad = n => String(n).padStart(2, "0");
+function fmtDur(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const d = Math.floor(s / 86400);
+  const base = `${pad(Math.floor(s % 86400 / 3600))}:${pad(Math.floor(s % 3600 / 60))}:${pad(s % 60)}`;
+  return d ? `${d}d ${base}` : base;
+}
+
+function tick() {
+  const now = Date.now();
+  $("clock").textContent = new Date(now).toLocaleTimeString([], { hour12: false });
+
+  const zone = activeZone(now);
+  const b = $("banner");
+  if (zone) {
+    b.className = "risk";
+    b.innerHTML = "🔴 NO TRADE ZONE - High Volatility / Liquidity Sweep Risk (BTC/ETH)";
+    const sm = document.createElement("small");
+    sm.textContent = `${zone.title} · ${new Date(zone.t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+    b.appendChild(sm);
+  } else {
+    b.className = "safe";
+    b.textContent = "🟢 SAFE TO TRADE - BTC/ETH Volatility Normal";
+  }
+
+  const next = visible().find(e => e.t > now);
+  $("cd").textContent = next ? fmtDur(next.t - now) : "--:--:--";
+  $("cdTitle").textContent = next ? `${next.asset} · ${next.title}` : "No upcoming high-impact events found";
+}
+
+function render() {
+  const now = Date.now();
+  const midnight = new Date(); midnight.setHours(0, 0, 0, 0);
+  const list = visible().filter(e => e.t >= midnight.getTime());
+  const tbody = $("rows");
+  tbody.replaceChildren();
+  if (!list.length && $("msg").hidden) {
+    $("msg").hidden = false;
+    $("msg").textContent = "No high-impact events scheduled for this filter.";
+  }
+  for (const e of list) {
+    const d = new Date(e.t);
+    const tr = document.createElement("tr");
+    const inZone = Math.abs(now - e.t) <= WINDOW_MS;
+    if (!inZone && e.t < now) tr.className = "past";
+
+    const tTime = document.createElement("td"); tTime.className = "time";
+    tTime.textContent = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+    const day = document.createElement("small");
+    day.textContent = d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+    tTime.appendChild(day);
+
+    const tTitle = document.createElement("td"); tTitle.textContent = e.title;
+    const tAsset = document.createElement("td");
+    const a = document.createElement("span"); a.className = `asset ${e.asset}`; a.textContent = e.asset;
+    tAsset.appendChild(a);
+
+    const tStat = document.createElement("td");
+    const badge = document.createElement("span");
+    if (inZone) { badge.className = "badge nt"; badge.textContent = "NO TRADE"; }
+    else if (e.t > now) { badge.className = "badge up"; badge.textContent = "UPCOMING"; }
+    else { badge.className = "badge ps"; badge.textContent = "PASSED"; }
+    tStat.appendChild(badge);
+
+    tr.append(tTime, tTitle, tAsset, tStat);
+    tbody.appendChild(tr);
+  }
+  if (list.length) $("msg").hidden = true;
+  tick();
+}
+
+document.querySelectorAll(".filters button").forEach(btn => btn.addEventListener("click", () => {
+  filter = btn.dataset.f;
+  document.querySelectorAll(".filters button").forEach(x => x.classList.toggle("on", x === btn));
+  $("msg").hidden = true;
+  render();
+}));
+
+loadEvents();
+setInterval(tick, 1000);
+setInterval(render, 30000);        // refresh badges
+setInterval(loadEvents, 10 * 60000); // re-pull data
+</script>
+</body>
+</html>

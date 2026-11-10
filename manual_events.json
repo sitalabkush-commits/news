@@ -1,0 +1,12 @@
+[
+  {
+    "title": "EXAMPLE - Ethereum network upgrade (edit or delete me)",
+    "asset": "ETH",
+    "event_time": "2030-01-01T14:00:00Z"
+  },
+  {
+    "title": "EXAMPLE - SEC ETF decision deadline (edit or delete me)",
+    "asset": "BTC",
+    "event_time": "2030-01-02T20:00:00Z"
+  }
+]
