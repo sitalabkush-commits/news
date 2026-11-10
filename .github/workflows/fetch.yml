@@ -1,0 +1,29 @@
+name: Fetch Crypto Events
+
+on:
+  schedule:
+    - cron: "0 0 * * *"   # daily at 00:00 UTC
+  workflow_dispatch:       # manual "Run workflow" button
+
+permissions:
+  contents: write          # lets the bot commit events.json
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: Fetch events
+        run: python fetch_crypto_events.py
+      - name: Commit events.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add events.json
+          git diff --cached --quiet || git commit -m "Update events.json"
+          git push
