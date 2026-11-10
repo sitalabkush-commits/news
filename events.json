@@ -34,18 +34,4 @@
     "event_time": "2026-12-03T14:00:00Z",
     "source": "manual"
   },
-  {
-    "title": "EXAMPLE - Ethereum network upgrade (edit or delete me)",
-    "asset": "ETH",
-    "impact": "High",
-    "event_time": "2030-01-01T14:00:00Z",
-    "source": "manual"
-  },
-  {
-    "title": "EXAMPLE - SEC ETF decision deadline (edit or delete me)",
-    "asset": "BTC",
-    "impact": "High",
-    "event_time": "2030-01-02T20:00:00Z",
-    "source": "manual"
-  }
-]
+  
