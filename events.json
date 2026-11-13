@@ -1,19 +1,5 @@
 [
   {
-    "title": "Core CPI m/m",
-    "asset": "USD",
-    "impact": "High",
-    "event_time": "2026-11-10T13:30:00Z",
-    "source": "forexfactory"
-  },
-  {
-    "title": "CPI m/m",
-    "asset": "USD",
-    "impact": "High",
-    "event_time": "2026-11-10T13:30:00Z",
-    "source": "forexfactory"
-  },
-  {
     "title": "Core PPI m/m",
     "asset": "USD",
     "impact": "High",
