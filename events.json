@@ -1,12 +1,5 @@
 [
   {
-    "title": "FOMC Meeting Minutes",
-    "asset": "USD",
-    "impact": "High",
-    "event_time": "2026-11-18T19:00:00Z",
-    "source": "forexfactory"
-  },
-  {
     "title": "Ethereum upgrade",
     "asset": "ETH",
     "impact": "High",
